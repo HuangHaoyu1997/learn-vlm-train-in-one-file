@@ -389,30 +389,145 @@ $$
 
 ### 2.9 MRL 维度裁剪
 
-`Qwen3-VL-Embedding-2B` 支持 64 到 2048 的自定义输出维度，这来自 Matryoshka Representation Learning 的思想：高维向量的前缀子向量也应具备可用语义。
+`Qwen3-VL-Embedding-2B` 支持 64 到 2048 的自定义输出维度，这来自 Matryoshka Representation Learning，简称 MRL。直觉上，它不是简单地“训练一个 2048 维向量，然后推理时随便截断”，而是在训练阶段就要求不同长度的前缀子向量都能完成检索任务。这样完整向量像俄罗斯套娃一样嵌套：前 64 维先承载最核心的语义，前 128 / 256 / 512 维逐步补充更细的信息，2048 维保留最完整的表达能力。
 
-若完整向量为：
-
-$$
-z \in \mathbb{R}^{2048}
-$$
-
-选择目标维度 $d \in [64, 2048]$ 后，可取前 $d$ 维并重新归一化：
+若完整 embedding 原始向量为：
 
 $$
-z_{[1:d]} = z_{1:d}
+e \in \mathbb{R}^{2048}
+$$
+
+普通 embedding 训练通常只对完整维度做一次归一化和一次对比学习 loss：
+
+$$
+z = \frac{e}{\lVert e \rVert_2}
+$$
+
+MRL 则会预先选一组嵌套维度，例如：
+
+$$
+\mathcal{D}_{\text{MRL}} = \{64, 128, 256, 512, 1024, 2048\}
+$$
+
+对每个目标维度 $d \in \mathcal{D}_{\text{MRL}}$，都取前 $d$ 维并单独重新归一化：
+
+$$
+e_{[1:d]} = e_{1:d}
 $$
 
 $$
-\tilde{z}_d = \frac{z_{[1:d]}}{\lVert z_{[1:d]} \rVert_2}
+\tilde{z}_d = \frac{e_{[1:d]}}{\lVert e_{[1:d]} \rVert_2}
+$$
+
+注意这里必须重新归一化，而不是直接截取已经归一化过的 2048 维向量。因为截断后子向量的 L2 norm 通常不再等于 1；如果不重新归一化，不同维度下的点积分数尺度会漂移，Recall@K 和阈值判断都会变得不可比。
+
+在训练阶段，同一个 batch 只需要前向得到一次完整向量，然后在 loss 里对多个前缀维度分别计算相似度矩阵。设一个 batch 中 query 和 document 的完整向量分别为：
+
+$$
+E_Q, E_D \in \mathbb{R}^{B \times 2048}
+$$
+
+对某个维度 $d$，取前缀并归一化：
+
+$$
+\tilde{Z}_{Q,d}
+=
+\operatorname{norm}(E_Q[:, 1:d])
+$$
+
+$$
+\tilde{Z}_{D,d}
+=
+\operatorname{norm}(E_D[:, 1:d])
+$$
+
+然后像普通 InfoNCE 一样计算 batch 内相似度：
+
+$$
+S_d
+=
+\tilde{Z}_{Q,d}\tilde{Z}_{D,d}^{\top}
+$$
+
+若第 $i$ 个 query 的正例是第 $i$ 个 document，那么这个维度上的 loss 可以写成：
+
+$$
+\mathcal{L}_d
+=
+-
+\frac{1}{B}
+\sum_{i=1}^{B}
+\log
+\frac{
+\exp(S_{d,ii} / \tau)
+}{
+\sum_{j=1}^{B}
+\exp(S_{d,ij} / \tau)
+}
+$$
+
+MRL 的总 loss 则是多个维度 loss 的加权和：
+
+$$
+\mathcal{L}_{\text{MRL}}
+=
+\sum_{d \in \mathcal{D}_{\text{MRL}}}
+w_d \mathcal{L}_d
+$$
+
+最简单做法是所有 $w_d$ 相等；也可以给小维度更高权重，让低成本向量更强，或者给业务最终使用的维度更高权重。比如线上主要用 512 维，就可以让 $512$ 附近的 loss 权重更大。无论权重怎么设，核心都是：每个前缀维度都必须把正例排到负例前面。
+
+```mermaid
+flowchart LR
+  B["Batch<br/>query / positive / negatives"] --> FWD["Forward Once<br/>2048-d embeddings"]
+  FWD --> Z2048["Full Embedding<br/>2048 dims"]
+  Z2048 --> Z1024["Prefix Slice<br/>1024 dims"]
+  Z2048 --> Z512["Prefix Slice<br/>512 dims"]
+  Z2048 --> Z256["Prefix Slice<br/>256 dims"]
+  Z2048 --> Z64["Prefix Slice<br/>64 dims"]
+  Z1024 --> L1["Normalize + InfoNCE"]
+  Z512 --> L2["Normalize + InfoNCE"]
+  Z256 --> L3["Normalize + InfoNCE"]
+  Z64 --> L4["Normalize + InfoNCE"]
+  L1 --> SUM["Weighted Sum<br/>MRL Loss"]
+  L2 --> SUM
+  L3 --> SUM
+  L4 --> SUM
+  SUM --> UPD["Backprop<br/>update model"]
+```
+
+这个训练方式会带来一个很重要的梯度分布：前 64 维会参与所有包含它的前缀 loss，前 128 维会参与 $128/256/512/1024/2048$ 等维度的 loss，而最后面的维度只会参与大维度 loss。因此越靠前的维度越频繁地被要求解决检索任务，模型会被迫把最通用、最稳定的语义压缩到前面，把更细粒度的信息放到后面的维度里。MRL 能在推理时裁剪维度，根本原因就在这里。
+
+如果训练数据里有 hard negatives，MRL 的处理方式也不特殊：每个维度 $d$ 下都用同一批 positive / negative 计算一遍对比学习或 ranking loss。例如对一个 query $q_i$、正例 $p_i$、hard negative $n_{i,k}$，会分别在 64、128、256、512、1024、2048 维空间里要求：
+
+$$
+\operatorname{sim}_d(q_i, p_i)
+>
+\operatorname{sim}_d(q_i, n_{i,k})
+$$
+
+其中：
+
+$$
+\operatorname{sim}_d(q, x)
+=
+\tilde{z}_{q,d}^{\top}\tilde{z}_{x,d}
+$$
+
+也就是说，hard negative 不只是帮助完整 2048 维学会区分细粒度语义，也会约束 64 / 128 / 256 维这些低成本向量不要只学到粗糙主题匹配。
+
+推理阶段就简单很多：选择目标维度 $d \in [64, 2048]$ 后，取前 $d$ 维并重新归一化即可：
+
+$$
+\tilde{z}_d = \frac{e_{[1:d]}}{\lVert e_{[1:d]} \rVert_2}
 $$
 
 ```mermaid
 flowchart LR
-  Z2048["Full Embedding<br/>2048 dims"] --> Z1024["Prefix Slice<br/>1024 dims"]
-  Z2048 --> Z512["Prefix Slice<br/>512 dims"]
-  Z2048 --> Z256["Prefix Slice<br/>256 dims"]
-  Z2048 --> Z64["Prefix Slice<br/>64 dims"]
+  E["Raw Embedding<br/>2048 dims"] --> Z1024["Prefix Slice<br/>1024 dims"]
+  E --> Z512["Prefix Slice<br/>512 dims"]
+  E --> Z256["Prefix Slice<br/>256 dims"]
+  E --> Z64["Prefix Slice<br/>64 dims"]
   Z1024 --> N1["Normalize"]
   Z512 --> N2["Normalize"]
   Z256 --> N3["Normalize"]
@@ -423,7 +538,9 @@ flowchart LR
   N4 --> USE4["极低成本粗召回"]
 ```
 
-维度越小，向量库占用、网络传输和相似度计算成本越低；维度越大，通常保留的信息越充分。实际选择应以固定评测集上的 Recall@K / nDCG 与延迟、存储成本共同决定。
+工程上要注意三点。第一，query 和 document 必须使用同一个维度；不能 query 用 512 维，document 库却用 2048 维。第二，建库维度、评测维度和线上维度必须一致；如果线上想从 1024 维切到 512 维，通常需要重建或至少重写向量库。第三，不要只看 2048 维指标，应该分别评测 64 / 128 / 256 / 512 / 1024 / 2048 维下的 Recall@K、MRR、nDCG、延迟和存储成本，选业务收益最高的点。
+
+维度越小，向量库占用、网络传输和相似度计算成本越低；维度越大，通常保留的信息越充分。MRL 的价值是让这些维度形成可用的质量-成本曲线，而不是只能在“完整精度”和“不可用截断”之间二选一。
 
 ## 3. 后训练目标：InfoNCE 与对比学习
 
