@@ -1,0 +1,28 @@
+{
+  "name": "demo_retrieval",
+  "purpose": "Tiny text-to-image and image-to-image retrieval training dataset.",
+  "generated_by": "scripts/create_demo_retrieval_dataset.py",
+  "counts": {
+    "corpus_images": 40,
+    "query_images": 8,
+    "queries": 24,
+    "qrels": 120,
+    "train_records": 18,
+    "val_records": 6
+  },
+  "splits": {
+    "train_families": [
+      "red_canvas_backpack",
+      "blue_canvas_backpack",
+      "red_running_shoe",
+      "green_running_shoe",
+      "yellow_ceramic_mug",
+      "white_ceramic_mug"
+    ],
+    "val_families": [
+      "black_headphones",
+      "silver_headphones"
+    ]
+  },
+  "path_convention": "Image paths are relative to the repository root."
+}
