@@ -5,9 +5,8 @@
 本次更新以原 `ChatGPT调研报告.md` 的两张主表为基准，吸收 `gemini调研报告.md` 中较新的模型线索，并通过官方文档、模型卡、GitHub/Hugging Face 页面及第三方盲测榜单交叉核验。核心结论如下：
 
 - 开源方向已经从早期 SVD/CogVideoX/Mochi 过渡到 **Wan2.2、HunyuanVideo-1.5、LTX-2.3、SkyReels V2/V3、LongCat-Video、MAGI-1、Open-Sora 2.0、Step-Video-T2V** 等多路线并行。需要特别注意许可证：SVD、HunyuanVideo、LTX-2/2.3、SkyReels、CogVideoX1.5 权重并非简单 Apache-2.0。
-- 闭源方向应将旧表中的 **Sora、Veo、Runway Gen-3/4、Seedance 1.0、Luma Dream Machine** 更新为 **Sora 2/2 Pro（API 已标记弃用）、Veo 3.1/Gemini Omni Flash、Runway Gen-4.5、Seedance 2.0、Kling 3.0、HappyHorse 1.1、Hailuo 2.3、Vidu Q3、Luma Ray3.2、PixVerse V6、Grok Imagine Video** 等。
+- 闭源方向应将旧表中的 **Sora、Veo、Runway Gen-3/4、Seedance 1.0、Luma Dream Machine** 更新为 **Sora 2/2 Pro（API 已标记弃用）、Veo 3.1/Gemini Omni Flash、Runway Gen-4.5、Seedance 2.0、Kling 3.0、SkyReels V4、Wan 2.7、HappyHorse 1.1、Hailuo 2.3、Vidu Q3、Luma Ray3.2、PixVerse V6、Grok Imagine Video、Midjourney Video、Pika 2.5、Adobe Firefly Video** 等。
 - 公开“绝对指标”仍然不足。厂商自评、VBench、Artificial Analysis Video Arena 的 Elo 分数口径不同，不能直接混为一谈。报告中已区分“官方/厂商自评”和“第三方盲测”。
-- 重要遗漏包括：闭源的 **HappyHorse 1.1、Grok Imagine Video 1.5、PixVerse V6、Vidu Q3、MiniMax Hailuo 2.3、Midjourney Video、Pika 2.5、Adobe Firefly Video**；开源/开放权重的 **LongCat-Video、SkyReels V3、LTX-2.3、HunyuanVideo-1.5、Open-Sora 2.0、MAGI-1**。
 
 ## 开源视频生成模型
 
@@ -59,24 +58,33 @@ flowchart LR
 | **Dreamina Seedance 2.0** | ByteDance / Dreamina / BytePlus | 角色一致性、复杂运动、多模态参考和原生音频表现强；中文/亚洲审美适配好。 | Artificial Analysis：T2V with audio 720p Elo 1219，I2V with audio Elo 1195，均居第一梯队。 | Dreamina/CapCut/BytePlus 及 Runway 等聚合渠道。 | Runway API 可调用 Seedance2：480p/720p 36 credits/s，1080p 40 credits/s，4K 150 credits/s；credits $0.01。官方渠道价格需以当地页面为准。 | 平台化服务，需按 ByteDance/渠道隐私与训练数据条款确认。 | 支持 4-15s、参考图/视频/音频、4K（部分渠道）；不同地区可用性和版权政策差异大。 | **优:** 当前商业质量标杆之一。**缺:** 渠道多、合规和版权政策需逐项目复核。 |
 | **Runway Gen-4.5 / Gen-4 Turbo** | Runway | Gen-4.5 面向高质量 T2V/I2V；Runway 生态提供 Motion Brush、视频编辑、音频、upscale 等完整工作流。 | Runway 官方曾引用 Artificial Analysis Elo 1247；第三方榜单会随新模型变化。 | Runway Web、API、创作套件。 | API credits $0.01；Gen-4.5 12 credits/s（约 $0.12/s），Gen-4 Turbo 5 credits/s。 | 遵循 Runway 隐私与企业条款；企业版可协商数据保护。 | Gen-4.5 官方帮助页：2-10s，720p，多比例；Gen-3 Alpha/Gen-4 Aleph 将于 2026-07-30 sunset。 | **优:** 工作流成熟、后期控制强。**缺:** 基础模型成本和平台锁定较高。 |
 | **Kling 3.0 / 3.0 Omni / 2.6 Pro** | 快手 Kling AI | 人体动作、强运镜、叙事镜头表现好；3.0 Omni 强调音视频/多模态。 | Artificial Analysis：T2V no-audio 中 Kling 3.0 Pro Elo 1251、3.0 Omni Pro Elo 1236；with audio 也进前五。 | Kling 官网、App、企业/API 渠道；部分聚合平台。 | 官方开发者价格页会动态调整；第三方渠道价格差异大，报告不写固定值。 | 国内/国际版条款和训练数据使用政策需分开核查。 | 支持 720p/1080p/更高分辨率能力按套餐开放；高级一致性和运镜控制通常付费。 | **优:** 动作与影视化强，中国团队/中文场景友好。**缺:** 官方 API/价格透明度和地区差异需要持续跟踪。 |
+| **SkyReels V4** | Skywork AI / SkyReels | 统一视频+音频生成、inpainting 与编辑；论文称 dual-stream MMDiT 同时生成视频和同步音频。 | Artificial Analysis T2V with audio：Elo 1105，排名第 5；论文自评称对比 Veo 3.1、Kling 2.6、Seedance 1.5 Pro、Wan 2.6 取得更高 GSB 胜率。 | SkyReels Web/可能的 API；当前主要公开资料为官网与 arXiv 技术报告，未见 V4 权重发布。 | Artificial Analysis 标注约 $21/min；官网实际套餐/接口价格需以 SkyReels 页面为准。 | 托管闭源服务，数据与输出权利需按 SkyReels 条款确认。 | 支持文本、图像、视频、mask、音频参考；论文称 1080p、32fps、15s、多镜头、同步音频。 | **优:** 音视频一体、编辑/inpainting 统一，榜单进入第一梯队。**缺:** 无开源权重，商业条款和 API 稳定性需继续核验。 |
 | **HappyHorse 1.1** | Alibaba Cloud / Model Studio | 强调 I2V、跨片段一致性、动态表现、音画同步与视觉质量；面向企业内容生产。 | Artificial Analysis：T2V with audio 前列；Alibaba Cloud 页面显示 2026-06-22 上线 1.1。 | Alibaba Cloud Model Studio、happyhorse.com、API。 | Model Studio 页面列 HappyHorse 1.1 输出 $0.14-$0.18/s（720p-1080p）；1.0 为 $0.14-$0.24/s。 | 阿里云企业级隔离/VPC 能力；具体训练数据与输出权利按 Model Studio 条款。 | HappyHorse-1.1-I2V 支持图生视频并提升视觉质量、动态表现、跨片段一致性。 | **优:** 新晋强势企业级 API，价格相对可控。**缺:** 上线较新，公开独立评测和开发者经验仍少。 |
+| **Wan 2.7** | Alibaba / Wan AI | 相比开源 Wan2.1/2.2，2.7 更偏托管创作模型，强调 instruction video editing、多图参考、视觉/剧情/场景重构。 | Artificial Analysis T2V with audio：Elo 1097，排名第 9；同页显示 2026-04 发布。 | Wan.video、ComfyUI Partner Nodes、聚合平台；截至本次核验，Wan-AI HF 组织未显示 2.7 开放权重。 | Artificial Analysis 标注约 $16.90/min；不同平台可能按 credits/订阅计费。 | 托管服务条款需单独核查；若未来开放权重，许可需重新复核。 | 官方站点描述支持 instruction video editing；ComfyUI 文档列 T2V/I2V/reference-to-video/video continuation/video editing。 | **优:** 继承 Wan 系列中文和控制优势，带音频榜单表现强。**缺:** 与 Apache-2.0 的 Wan2.2 不同，目前不应按开源模型处理。 |
 | **MiniMax Hailuo 2.3 / 2.3 Fast** | MiniMax | 人物微表情、风格化、动作跟随、镜头运动较强；Fast 版偏低成本快速迭代。 | 官方未给统一公开榜单分；用户侧口碑较好。 | Hailuo Web/App、MiniMax Open Platform API。 | 官方 Pay-as-you-go：2.3-Fast 768p 6s $0.19、768p 10s $0.32、1080p 6s $0.33；2.3 768p 6s $0.28、768p 10s $0.56、1080p 6s $0.49。 | 遵循 MiniMax 平台政策；企业需看数据使用和地域条款。 | 6s/10s 常见，768p/1080p；适合人物和营销短片。 | **优:** 价格低、速度快、人物表现好。**缺:** 复杂长故事和精确控制弱于专业影视平台。 |
 | **Vidu Q3 / Vidu 2.0** | ShengShu / Vidu | Q3 覆盖 T2V/I2V/首末帧/参考视频；强项是快速生成、电商/产品展示和模板化工作流。 | 第三方榜单中 Vidu Q3 Pro 进入对比集合；官方未给单一综合分。 | Vidu API、Web/App。 | 官方 Q3：Q3-turbo 1080p T2V/I2V $0.065/s、720p $0.055/s；Q3 reference2video 1080p $0.075/s；另有 off-peak 价格。 | 遵循 Vidu API 条款；模板/数字人/唇同步另行计费。 | Q3 支持 1-16s、540p/720p/1080p；Q2 仍有扩展、多帧、数字人等能力。 | **优:** API 价格清晰、生成速度和商业模板强。**缺:** 顶级电影感和复杂物理仍需与 Veo/Seedance/Kling 比较。 |
 | **Luma Ray3.2** | Luma AI | 面向“cinema-grade”API；支持多关键帧、1080p、V2V、HDR、EXR，强调后期合成。 | 官方未给统一公开分；Ray3/Ray3.2 定位专业影像。 | Luma API、Web。 | 官方 API：T2V/I2V 5s 540p $0.15、720p $0.30、1080p $1.20；10s 540p $0.45、720p $0.90、1080p $3.60；V2V 更贵；HDR 2x，HDR+EXR 3x。 | API 页面列 “No-train guarantee” 面向规模化方案；需合同确认。 | 1080p 全模型、V2V 最长 20s、HDR/16-bit EXR。 | **优:** 专业后期与合成友好。**缺:** 1080p 成本高，通用创作性价比不一定最佳。 |
 | **PixVerse V6** | PixVerse | T2V/I2V/首末帧/扩展/Reference-to-video 全覆盖，支持音频开关。 | Artificial Analysis I2V no-audio 中 PixVerse V6 进入前列；官方未给单一分。 | PixVerse Platform API、Web/App。 | 官方 V6 credits/s：无音频/有音频分别为 360p 5/7、540p 7/9、720p 9/12、1080p 18/23 credits；具体美元按账户信用折算。 | 遵循 PixVerse 平台条款。 | V6 支持 1-15s、360/540/720/1080、多比例、音频、多镜头。 | **优:** 能力矩阵完整、API 参数清晰。**缺:** 高端画质和身份一致性需项目内实测。 |
 | **xAI Grok Imagine Video / 1.5 preview** | xAI | I2V/视频编辑/扩展/参考视频等 Imagine API 能力快速迭代；在 I2V 榜单表现突出。 | Artificial Analysis：I2V with audio 中 grok-imagine-video-1.5-preview Elo 1111；I2V no-audio 中 grok-imagine-video 与 1.5-preview 均约 1325。 | xAI Imagine API。 | `grok-imagine-video` $0.050/s；`grok-imagine-video-1.5-preview` 输出 $0.080/s，输入另计：图像 $0.01/张，视频输入按 480p/720p/1080p 为 $0.08/$0.14/$0.25/s。 | 遵循 xAI API 条款；需留意地区与内容政策。 | 支持图生视频、编辑、扩展；1.5 preview 最高 720p，部分模式支持有限。 | **优:** I2V 性价比和榜单表现强。**缺:** 新模型变化快，文档与实际可用模式需持续核对。 |
-| **Adobe Firefly Video / Partner Model Hub** | Adobe | 强调版权安全、企业素材工作流、与 Premiere/Express/Firefly 集成；也可接入部分伙伴模型。 | Adobe 未公开统一视频榜单分。 | Firefly、Creative Cloud、企业服务。 | 以订阅/生成积分为主，API/企业价格需询价。 | Firefly 自有模型强调 licensed/public-domain 等商业安全数据；伙伴模型遵循各自条款。 | 更适合企业合规创意和 Adobe 工作流，不一定追求最强开放 API。 | **优:** 合规和创意软件整合强。**缺:** 生成能力可能落后专门视频模型；伙伴模型条款复杂。 |
+| **Midjourney Video (V1)** | Midjourney | 以图生视频为主，把 Midjourney 静态图扩展成 5s 动态片段；风格化、美术概念和画面审美强。 | 未进入 Artificial Analysis 主流 T2V/I2V 榜单；官方未给统一基准。 | Midjourney Web/Discord；各订阅层均可 Fast Mode 生成视频，Pro/Mega 支持 Relax SD Video。 | 订阅：Basic $10、Standard $30、Pro $60、Mega $120/月；SD 批量 4 个视频耗 8 GPU min，HD 批量 4 个耗 26 GPU min；额外 GPU $4/hr。 | Pro/Mega 才有 Stealth Mode；外部图像需有权使用，真人/公众人物等受社区规则约束。 | 默认一次 4 个 5s 视频，可扩展 4 次到 21s；支持 `--motion low/high`、`--loop`、`--end`、batch size。 | **优:** 美术风格和创意探索强，上手成本低。**缺:** 更像消费级创作工具，API/企业工作流和精确控制不如专业平台。 |
+| **Pika 2.5** | Pika | 创作者工具链，覆盖 T2V/I2V/V2V、Pikaframes、Pikascenes、Pikadditions、Pikaswaps、Pikatwists、Pikaffects，并提供 Pika MCP/Agent 能力。 | 未见官方统一榜单分；未进入 Artificial Analysis 当前主流视频榜单。 | Pika Web/App、Pika MCP/Agent，第三方聚合渠道。 | 官方订阅：Basic $8/月 80 credits、Standard $28/月 700 credits、Pro $76/月 2300 credits、Fancy 6000 credits；2.5 T2V/I2V 5s/10s 约 12-80 credits，按分辨率和时长变化。 | 付费计划支持无水印下载和商业使用；企业/Agent 钱包另按 Pika 条款。 | 2.5 支持 480p/720p/1080p、5s/10s；Pikaframes 可到 25s 区间；更偏特效、角色/场景编辑和社交内容生产。 | **优:** 功能花样多，适合营销和短视频创作。**缺:** 前沿画质和可控性不一定领先，API/企业能力需逐场景验证。 |
+| **Adobe Firefly Video / Partner Model Hub** | Adobe | 强调版权安全、企业素材工作流、与 Premiere/Express/Firefly 集成；也可接入 Google、OpenAI 等伙伴模型。 | Adobe 未公开统一视频榜单分。 | Firefly、Creative Cloud、企业服务。 | Firefly Standard $9.99/月 2,000 credits，约可生成 20 个 5s 视频；Pro $19.99/月 4,000 credits；Pro Plus $49.99/月 10,000 credits；Premium $199.99/月 50,000 credits 且含 Firefly Video Model 高量使用。 | Firefly 自有模型强调 licensed/public-domain 训练数据、Content Credentials 和商业可用；伙伴模型需按各自条款判断。 | 适合企业合规创意、Premiere/Express 工作流和素材补齐；高阶计划也可使用部分非 Adobe 模型。 | **优:** 合规和创意软件整合强。**缺:** 生成能力可能落后专门视频模型；伙伴模型条款复杂。 |
 
 *说明：闭源表的价格均为 2026-07-01 前后公开页面可见信息，实际结算会随区域、套餐、分辨率、排队模式和聚合平台变化。*
 
-## 核验更正与遗漏检查
+## 第72行模型补充调研结论
 
-### 重要遗漏模型
-- **建议放入观察清单而非主表：** Midjourney Video、Pika 2.5、Adobe Firefly Video、SkyReels V4、Wan 2.7。原因是它们要么偏消费/创意应用且 API 信息不足，要么出现在第三方榜单但官方开源/API材料尚需持续核验。
+| 模型 | 核验结论 | 处理方式 |
+|------|----------|----------|
+| Midjourney Video (V1) | 官方文档显示已支持图生视频、5s 起步、最多延展到 21s；SD/HD 按 GPU time 计费，Pro/Mega 支持 Relax SD Video。 | 补入闭源表，定位为消费级/美术创作工具，不作为前沿 API 基础模型。 |
+| Pika 2.5 | 官方价格页确认 2.5、Pikaframes/Pikascenes/Pikadditions/Pikaswaps/Pikatwists/Pikaffects 和 MCP/Agent 生态；计费按 credits 与特效类型。 | 补入闭源表，定位为创作者工具链。 |
+| Adobe Firefly Video | 官方计划页确认视频/音频/伙伴模型使用 generative credits；Firefly 自有模型强调商业安全和 licensed/public-domain 数据。 | 原闭源表已有，已补充价格与合规细节。 |
+| SkyReels V4 | 官网/论文与 Artificial Analysis 均显示 V4 已进入带音频视频模型第一梯队；未见 V4 开源权重。 | 补入闭源表，定位为托管/闭源音视频联合模型。 |
+| Wan 2.7 | Wan 官方站点和 Artificial Analysis 已列 2.7；AA T2V with audio Elo 1097。Wan-AI HF 当前未见 2.7 权重，不能按 Wan2.2 Apache 开源模型处理。 | 补入闭源表，定位为阿里托管/平台模型；保留 Wan2.2 作为开源主线。 |
 
 ## 对比分析
 
-**质量：** 2026 年的闭源第一梯队不再只有 Sora/Veo/Runway。Seedance 2.0、Kling 3.0、HappyHorse 1.1、Grok Imagine Video、PixVerse V6 在第三方盲测中都进入关键位置。开源侧 Wan2.2、HunyuanVideo-1.5、LTX-2.3、SkyReels V2/V3、LongCat-Video 已经能在特定维度接近商业模型，但稳定性和易用工作流仍依赖工程生态。
+**质量：** 2026 年的闭源第一梯队不再只有 Sora/Veo/Runway。Seedance 2.0、HappyHorse 1.1、Kling 3.0、SkyReels V4、Wan 2.7、Grok Imagine Video、PixVerse V6 在第三方盲测中都进入关键位置。开源侧 Wan2.2、HunyuanVideo-1.5、LTX-2.3、SkyReels V2/V3、LongCat-Video 已经能在特定维度接近商业模型，但稳定性和易用工作流仍依赖工程生态。
 
 **可控性：** 闭源工具的优势在于导演式 UI、首末帧、参考图、扩展、编辑、音频与团队协作。开源模型的优势在于本地可控、可微调、可接入 ComfyUI/自研流水线。若需要“可审计和可私有化”，Wan2.2、LongCat、Open-Sora、MAGI-1 更值得关注；若需要“快速出片”，Runway、Luma、Vidu、PixVerse、Hailuo 更直接。
 
@@ -88,7 +96,7 @@ flowchart LR
 
 - **研究与复现：** 首选 Wan2.2、Open-Sora 2.0、HunyuanVideo-1.5、LongCat-Video；做长视频或世界模型可重点看 MAGI-1、SkyReels V2、LongCat。
 - **本地商用原型：** 首选 Apache/MIT 许可更清晰的 Wan2.2、Open-Sora 2.0、MAGI-1、LongCat-Video；使用 LTX-2.3/Hunyuan/SVD/CogVideoX1.5/SkyReels 时必须复核权重许可。
-- **快速内容生产：** Runway Gen-4.5、Vidu Q3、PixVerse V6、Hailuo 2.3、Luma Ray3.2 更适合团队协作和稳定 API；预算充足且重视音视频/电影感时看 Veo 3.1、Seedance 2.0、Kling 3.0。
+- **快速内容生产：** Runway Gen-4.5、Vidu Q3、PixVerse V6、Hailuo 2.3、Luma Ray3.2 更适合团队协作和稳定 API；预算充足且重视音视频/电影感时看 Veo 3.1、Seedance 2.0、Kling 3.0、SkyReels V4、Wan 2.7；美术概念和社媒特效可看 Midjourney Video、Pika 2.5、Adobe Firefly。
 - **企业级 API：** HappyHorse 1.1、Veo 3.1、Seedance 2.0、Kling 3.0、Runway、Luma、Vidu、Grok Imagine 需要按地区、数据条款、SLA 和版权策略逐项评估。Sora 2 因已宣布 API 下线，不建议作为新项目长期依赖。
 
 ## 未来趋势与研究空白
@@ -111,4 +119,8 @@ flowchart LR
 - xAI： [xAI Models / Imagine API](https://docs.x.ai/docs/models)、[Grok Imagine Video 1.5 Preview](https://docs.x.ai/developers/models/grok-imagine-video-1.5-preview)
 - Alibaba Cloud： [Model Studio](https://modelstudio.alibabacloud.com/)、[HappyHorse 1.1 介绍](https://www.alibabacloud.com/blog/happyhorse-gets-stronger-motion-expressiveness-higher-generation-consistency-and-enhanced-visual-quality_603293)
 - Artificial Analysis： [Text-to-Video Leaderboard](https://artificialanalysis.ai/video/leaderboard/text-to-video)、[Image-to-Video Leaderboard](https://artificialanalysis.ai/video/leaderboard/image-to-video)、[Video Model Comparisons](https://artificialanalysis.ai/video/models)
+- Midjourney： [Video docs](https://docs.midjourney.com/hc/en-us/articles/37460773864589-Video)、[Plan comparison](https://docs.midjourney.com/hc/en-us/articles/27870484040333-Comparing-Midjourney-Plans)
+- Pika： [Pika pricing](https://pika.art/pricing)、[Pika homepage / MCP](https://pika.art/)
+- Adobe： [Firefly product/pricing](https://www.adobe.com/products/firefly.html)、[Firefly plans](https://www.adobe.com/products/firefly/plans.html)、[Firefly Video Model launch](https://blog.adobe.com/en/publish/2025/02/12/meet-firefly-video-model-ai-powered-creation-with-unparalleled-creative-control)
+- SkyReels / Wan： [SkyReels V4 paper](https://arxiv.org/html/2602.21818v1)、[SkyReels site](https://www.skyreels.ai/)、[Wan AI](https://wan.video/)、[ComfyUI Wan2.7 docs](https://docs.comfy.org/tutorials/partner-nodes/wan/wan2-7)
 - 开源模型： [SVD HF](https://huggingface.co/stabilityai/stable-video-diffusion-img2vid-xt)、[Wan2.2 HF](https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B)、[HunyuanVideo-1.5 HF](https://huggingface.co/tencent/HunyuanVideo-1.5)、[LTX-Video GitHub](https://github.com/Lightricks/LTX-Video)、[LTX-2.3 HF](https://huggingface.co/Lightricks/LTX-2.3)、[Step-Video-T2V GitHub](https://github.com/stepfun-ai/Step-Video-T2V)、[Open-Sora GitHub](https://github.com/hpcaitech/Open-Sora)、[SkyReels-V2 GitHub](https://github.com/SkyworkAI/SkyReels-V2)、[SkyReels-V3 GitHub](https://github.com/SkyworkAI/SkyReels-V3)、[LongCat-Video GitHub](https://github.com/meituan-longcat/LongCat-Video)、[MAGI-1 GitHub](https://github.com/SandAI-org/MAGI-1)、[Mochi GitHub](https://github.com/genmoai/mochi)、[CogVideo GitHub](https://github.com/zai-org/CogVideo)、[CogVideoX1.5 HF](https://huggingface.co/zai-org/CogVideoX1.5-5B)
